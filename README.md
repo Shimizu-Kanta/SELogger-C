@@ -1,3 +1,4 @@
+# This is a modification based on SELogger0.5.1
 
 # SELogger: (Near-)Omniscient Logging Tool for Java
 
