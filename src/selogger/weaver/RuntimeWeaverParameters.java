@@ -106,13 +106,6 @@ public class RuntimeWeaverParameters {
 	private Date currentDate = new Date();
 
 	/**
-	 * 追加要素：trim_amount
-	 * premetモードでのトリム量を設定する
-	 * デフォルトは16
-	 */
-	private int trimSize = 16;
-
-	/**
 	 * 追加要素：show_bufferSize
 	 * 最終的なバッファサイズを見せるかどうかを決定する
 	 * デフォルトはfalse
@@ -235,10 +228,7 @@ public class RuntimeWeaverParameters {
 				} else {
 					mode = Mode.Invalid;
 				}
-			} else if (arg.startsWith("trim=")) {
-				trimSize = Integer.parseInt(arg.substring("trim=".length()));
-				if (trimSize < 1) 
-					trimSize = 1;
+
 			} else if (arg.startsWith("showbuffersize=")) {
 				String param = arg.substring("showbuffersize=".length());
 				show_bufferSize = Boolean.parseBoolean(param);
@@ -341,10 +331,6 @@ public class RuntimeWeaverParameters {
 
 	public PartialSaveStrategy getPartialSaveStrategy() {
 		return partialSave;
-	}
-
-	public int getTrimSize(){
-		return trimSize;
 	}
 
 	public boolean getShowBufferSize(){

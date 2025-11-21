@@ -102,13 +102,6 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 
 	/**
 	 * (追加要素)
-	 * トリムするデータ数
-	 * デフォルトは16
-	 */
-	private int trimSize = 16;
-
-	/**
-	 * (追加要素)
 	 * 現段階でのバッファサイズの許容値
 	 * このサイズのバッファサイズまでは許す
 	 */
@@ -138,11 +131,6 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 * データが追加された回数を知る
 	 */
 	private int put_data_count = 0;
-
-	/*
-	 * 最大バッファのリスト
-	 */
-	private ArrayList<ProposedmethodBuffer> max_buffers;
 	
 	/**
 	 * このオブジェクトは各イベントにシーケンス番号を生成する。
@@ -162,12 +150,11 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 * @param keepObject バッファがJavaオブジェクトを保持する方法を指定します。 
 	 * @param outputJson ロガーがjsonフォーマットを使用するかどうかを指定します。
 	 */
-	public ProposedmethodLogger(File traceFile, int bufferSize, int trimSize, boolean show_bufferSize, PrometObjectRecordingStrategy keepObject, boolean outputJson, IErrorLogger errorLogger) {
+	public ProposedmethodLogger(File traceFile, int bufferSize, boolean show_bufferSize, PrometObjectRecordingStrategy keepObject, boolean outputJson, IErrorLogger errorLogger) {
 		super("Promet");
 		this.traceFile = traceFile;
 		this.bufferSize = bufferSize;
 		this.list_capacity = bufferSize;
-		this.trimSize = trimSize;
 		this.buffers = new ArrayList<>();
 		this.keepObject = keepObject;
 		this.outputJson = outputJson;
@@ -437,68 +424,86 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 * イベント数が許容量を超えた場合にトリム(削除)を行う
 	 */
 	private void trimBuffers() {
-		System.out.println("Start Trim!(eventCount:" + event_count +")");
-		while (event_count > list_capacity) {
-			maxBufferSize -= trimSize;
-			if(maxBufferSize <= 0) maxBufferSize = 1;
-			System.out.println("Set Max Buffer Size:" + maxBufferSize);
-			decre_buffer += 1;
-
-			max_buffers = new ArrayList<>();
-			int max_count = 0;
-			for (ProposedmethodBuffer buffer : buffers) {
-				if (buffer == null) {
-					continue; // null の場合はスキップ
-				}
-				if (buffer.size() == max_count) {
-					max_buffers.add(buffer);
-				}
-				if (buffer.size() > max_count) {
-					max_buffers.clear();
-					max_buffers.add(buffer);
-					max_count = buffer.size();
-				}
-			}
-
-			for (ProposedmethodBuffer buffer : max_buffers) {
-				int trimAmount = Math.min(trimSize, buffer.size());
-				System.out.println("Trim Buffer Size:" + buffer.size() +"(max_trim)");
-				buffer.trimOldEvents(trimAmount);
-				trim_count += 1;
-				event_count -= trimAmount;
-
-				System.out.println("Trim Data Amount:" + trimAmount);
-			}
-
-			if (event_count <= list_capacity) {
-				System.out.println("End Trim!(eventCount:" + event_count + ")");
-				return; // 必要なトリム量を満たしたら終了
-			}
-
-			for (ProposedmethodBuffer buffer : buffers) {
-				if (buffer == null) {
-					continue; // null の場合はスキップ
-				}
-				if (buffer.size() > maxBufferSize) {
-					int trimAmount = buffer.size() - maxBufferSize;
-					System.out.println("Trim Buffer :" + buffer.size() + "(limit_trim)");
-					buffer.trimOldEvents(trimAmount);
-					trim_count += 1;
-					event_count -= trimAmount;
-
-					System.out.println("Trim Data Amount:" + trimAmount);
-
-					if (event_count <= list_capacity) {
-						System.out.println("End Trim!(eventCount:" + event_count + ")");
-						return; // 必要なトリム量を満たしたら終了
-					}
-				}
-			}
-
-			if(maxBufferSize == 1) break;
-
+		System.out.println("Start Trim! (eventCount: " + event_count + ")");
+		if (event_count <= list_capacity) {
+			// 許容量内であればトリムは不要
+			return;
 		}
+
+		//1. 各バッファの現在のサイズを収集し、max_countを見つける
+		ArrayList<Integer> sizes = new ArrayList<>();
+		int max_count = 0;
+		for (ProposedmethodBuffer buffer : buffers) {
+			if (buffer == null) continue;
+			int size = buffer.size();
+			sizes.add(size);
+			if (size > max_count) {
+				max_count = size;
+			}
+		}
+
+		// イベントが存在しないか、max_countが0の場合はトリム不要
+		if (max_count == 0) {
+			return;
+		}
+
+		// 2. kの二分探索の範囲を設定
+		int low = 1;
+		int high = max_count;
+		int bestK = 1;  // will hold the maximum feasible k
+
+		// 3. 最大のkを二分探索で見つける（合計がlist_capacity以下となるk）
+		while (low <= high) {
+			int mid = (low + high) >>> 1;  // mid-point
+			long totalEvents = 0;
+			// 各バッファを'mid'に切り詰めた場合の合計イベント数を計算
+			for (int size : sizes) {
+				totalEvents += (size <= mid ? size : mid);
+				// 合計イベント数が許容量を超えたら早期終了
+				if (totalEvents > list_capacity) break;
+			}
+			if (totalEvents <= list_capacity) {
+				// midは許容量を超えない閾値として有効
+				bestK = mid;
+				low = mid + 1;    // より大きなkを試す
+			} else {
+				// midが高すぎるため、閾値を下げる
+				high = mid - 1;
+			}
+		}
+
+		// 4. 新しいイベントによるオーバーシュートがあれば調整
+		if (event_count > list_capacity && bestK == maxBufferSize && bestK > 1) {
+			// 許容量を超え、閾値が変わらなかった場合は1下げる
+			bestK--;
+		}
+		if (bestK < 1) bestK = 1;  // 少なくとも1は確保
+
+		// グローバルなmaxBufferSizeを新しい閾値に更新
+		maxBufferSize = bestK;
+		System.out.println("Set Max Buffer Size: " + maxBufferSize);
+
+		// 5. 各バッファを'bestK'にトリムし、カウントを更新
+		int totalTrimmed = 0;
+		for (ProposedmethodBuffer buffer : buffers) {
+			if (buffer == null) continue;
+			int removed = buffer.ensureSize(bestK);
+			if (removed > 0) {
+				// このバッファからいくつかのイベントがトリムされた
+				totalTrimmed += removed;
+				trim_count += 1;
+				System.out.println("Trimmed " + removed + " old events from buffer (new size " 
+								+ buffer.size() + ")");
+			}
+		}
+		// グローバルなevent_countをトリムしたイベント数だけ減少
+		event_count -= totalTrimmed;
+		// バッファ閾値を調整（減少）した回数を記録
+		decre_buffer += 1;
+
+		System.out.println("End Trim! (eventCount: " + event_count + ")");
 	}
+
 	
 	/**
 	 * イベントが存在すればtrueを返す
