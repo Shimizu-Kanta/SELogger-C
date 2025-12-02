@@ -422,6 +422,13 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 
 	/**
 	 * イベント数が許容量を超えた場合にトリム(削除)を行う
+	 * 
+	 * 方針:
+	 *  - 各バッファの size() を freq とみなし、
+	 *    S(k) = Σ min(k, size_i) が list_capacity 以下となる最大の k を二分探索で決定する。
+	 *  - k の下限は 1 とし、「イベントが存在するバッファには最低 1 件残す」ことを保証する。
+	 *  - list_capacity < 非空バッファ数 のような場合は、S(k) <= list_capacity を満たす k は存在しないため、
+	 *    その場合でも k = 1 を採用し、limit 超過は許容する。
 	 */
 	private void trimBuffers() {
 		System.out.println("Start Trim! (eventCount: " + event_count + ")");
@@ -430,7 +437,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			return;
 		}
 
-		//1. 各バッファの現在のサイズを収集し、max_countを見つける
+		// 1. 各バッファの現在のサイズを収集し、max_count を見つける
 		ArrayList<Integer> sizes = new ArrayList<>();
 		int max_count = 0;
 		for (ProposedmethodBuffer buffer : buffers) {
@@ -442,64 +449,74 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			}
 		}
 
-		// イベントが存在しないか、max_countが0の場合はトリム不要
+		// イベントが存在しないか、max_count が 0 の場合はトリム不要
 		if (max_count == 0) {
 			return;
 		}
 
-		// 2. kの二分探索の範囲を設定
+		// 2. k の二分探索の範囲を設定 [1, max_count]
 		int low = 1;
 		int high = max_count;
-		int bestK = 1;  // will hold the maximum feasible k
+		int bestK = 1;             // 条件を満たす中で最大の k
+		boolean foundFeasible = false;
 
-		// 3. 最大のkを二分探索で見つける（合計がlist_capacity以下となるk）
+		// 3. 最大の k を二分探索で見つける（合計が list_capacity 以下となる k）
 		while (low <= high) {
 			int mid = (low + high) >>> 1;  // mid-point
-			long totalEvents = 0;
-			// 各バッファを'mid'に切り詰めた場合の合計イベント数を計算
+			long totalEvents = 0L;
+
+			// 各バッファを 'mid' に切り詰めた場合の合計イベント数を計算
 			for (int size : sizes) {
-				totalEvents += (size <= mid ? size : mid);
+				totalEvents += (size <= mid ? size : mid); // Σ min(mid, size)
 				// 合計イベント数が許容量を超えたら早期終了
-				if (totalEvents > list_capacity) break;
+				if (totalEvents > list_capacity) {
+					break;
+				}
 			}
+
 			if (totalEvents <= list_capacity) {
-				// midは許容量を超えない閾値として有効
+				// mid は許容量を超えない閾値として有効
+				foundFeasible = true;
 				bestK = mid;
-				low = mid + 1;    // より大きなkを試す
+				low = mid + 1;    // より大きな k を試す
 			} else {
-				// midが高すぎるため、閾値を下げる
+				// mid が高すぎるため、閾値を下げる
 				high = mid - 1;
 			}
 		}
 
-		// 4. 新しいイベントによるオーバーシュートがあれば調整
-		if (event_count > list_capacity && bestK == maxBufferSize && bestK > 1) {
-			// 許容量を超え、閾値が変わらなかった場合は1下げる
-			bestK--;
+		// S(k) <= list_capacity を満たす k が存在しない場合でも、
+		// 「各バッファに最低 1 件は残す」ため bestK = 1 を用いる。
+		if (!foundFeasible) {
+			bestK = 1;
 		}
-		if (bestK < 1) bestK = 1;  // 少なくとも1は確保
+		// 念のための下限チェック（仕様として 1 未満にはしない）
+		if (bestK < 1) {
+			bestK = 1;
+		}
 
-		// グローバルなmaxBufferSizeを新しい閾値に更新
+		// グローバルな maxBufferSize を新しい閾値に更新
 		maxBufferSize = bestK;
+		decre_buffer += 1;
 		System.out.println("Set Max Buffer Size: " + maxBufferSize);
 
-		// 5. 各バッファを'bestK'にトリムし、カウントを更新
+		// 4. 各バッファを bestK にトリムし、カウントを更新
 		int totalTrimmed = 0;
 		for (ProposedmethodBuffer buffer : buffers) {
 			if (buffer == null) continue;
+			int before = buffer.size();
 			int removed = buffer.ensureSize(bestK);
 			if (removed > 0) {
-				// このバッファからいくつかのイベントがトリムされた
+				int after = buffer.size();
 				totalTrimmed += removed;
 				trim_count += 1;
-				System.out.println("Trimmed " + removed + " old events from buffer (new size " 
-								+ buffer.size() + ")");
+				System.out.println(
+					"Trimmed " + removed + " old events from buffer (size " + before + " -> " + after + ")"
+				);
 			}
 		}
-		// グローバルなevent_countをトリムしたイベント数だけ減少
+		// グローバルな event_count をトリムしたイベント数だけ減少
 		event_count -= totalTrimmed;
-		// バッファ閾値を調整（減少）した回数を記録
-		decre_buffer += 1;
 
 		System.out.println("End Trim! (eventCount: " + event_count + ")");
 	}
