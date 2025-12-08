@@ -38,4 +38,30 @@ public class PrometBufferTest {
         Assert.assertEquals(100, buf.getThreadId(0));
         Assert.assertEquals(200, buf.getThreadId(1));
     }
+
+    //リングバッファの挙動確認
+    @Test
+    public void testRingBufferBehavior() {
+        ProposedmethodBuffer buf = new ProposedmethodBuffer(int.class, 4, PrometObjectRecordingStrategy.Weak);
+
+        //0~5の計6個を追加
+        for (int i = 0; i < 6; i++) {
+            buf.addInt(i, i, 0);
+        }
+
+        //sizeは4になる
+        Assert.assertEquals(4, buf.size());
+
+        //最新の4つが保存されていることを確認
+        Assert.assertEquals(2, buf.getInt(0));
+        Assert.assertEquals(3, buf.getInt(1));
+        Assert.assertEquals(4, buf.getInt(2));
+        Assert.assertEquals(5, buf.getInt(3));
+
+        //seqnumが対応していることを確認
+        Assert.assertEquals(2, buf.getSeqNum(0));
+        Assert.assertEquals(3, buf.getSeqNum(1));
+        Assert.assertEquals(4, buf.getSeqNum(2));
+        Assert.assertEquals(5, buf.getSeqNum(3));
+    }
 }
