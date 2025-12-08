@@ -372,11 +372,17 @@ public class ProposedmethodBuffer {
 
 	public synchronized int ensureSize(int maxSize){
 		int trimSize = 0;
-		if(size() > maxSize){
+
+		if(maxSize == 0){
+			trimSize = size() - 1;
+		}
+		else if(size() > maxSize){
 			trimSize = size() - maxSize;
-			System.out.println("Start ensureTrim(bufferSize:" + size() + ", trimsize:" + trimSize + ")");
+		}
+
+		if(trimSize > 0){
 			trimOldEvents(trimSize);
-			bufferSize = maxSize;
+			bufferSize = size();
 		}
 
 		return trimSize;

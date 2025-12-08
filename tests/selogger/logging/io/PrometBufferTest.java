@@ -116,4 +116,28 @@ public class PrometBufferTest {
         Assert.assertEquals(0, removed);
         Assert.assertEquals(5, buf.size());
     }
+
+    //ensureSizeで最低一件は残ることの確認
+    @Test
+    public void testEnsureSizeAtLeastOne() {
+        ProposedmethodBuffer buf = new ProposedmethodBuffer(int.class, 16, PrometObjectRecordingStrategy.Weak);
+
+        //0~4の5個を追加
+        for (int i = 0; i < 5; i++) {
+            buf.addInt(i, i, 0);
+        }
+        Assert.assertEquals(5, buf.size());
+
+        int removed = buf.ensureSize(0);
+
+        //4個削除される, sizeは1になる
+        Assert.assertEquals(4, removed);
+        Assert.assertEquals(1, buf.size());
+
+        //最新の1つが保存されていることを確認
+        Assert.assertEquals(4, buf.getInt(0));
+
+        //seqnumが対応していることを確認
+        Assert.assertEquals(4, buf.getSeqNum(0));
+    }
 }
