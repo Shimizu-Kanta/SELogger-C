@@ -1,17 +1,9 @@
 package selogger.logging.io;
 
-import java.io.IOException;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import selogger.logging.io.LatestEventLogger.ObjectRecordingStrategy;
 import selogger.logging.io.ProposedmethodLogger.PrometObjectRecordingStrategy;
-import selogger.logging.util.JsonBuffer;
-import selogger.logging.util.ObjectId;
 
 public class PrometBufferTest {
     
