@@ -64,4 +64,56 @@ public class PrometBufferTest {
         Assert.assertEquals(4, buf.getSeqNum(2));
         Assert.assertEquals(5, buf.getSeqNum(3));
     }
+
+    //ensureSizeの動作確認
+    @Test
+    public void testEnsureSizeBehavior() {
+        ProposedmethodBuffer buf = new ProposedmethodBuffer(int.class, 16, PrometObjectRecordingStrategy.Weak);
+
+        //0~9の10個を追加
+        for (int i = 0; i < 10; i++) {
+            buf.addInt(i, i, 0);
+        }
+        Assert.assertEquals(10, buf.size());
+
+        int removed = buf.ensureSize(6);
+
+        //4個削除される, sizeは6になる
+        Assert.assertEquals(4, removed);
+        Assert.assertEquals(6, buf.size());
+
+        //最新の6つが保存されていることを確認
+        Assert.assertEquals(4, buf.getInt(0));
+        Assert.assertEquals(5, buf.getInt(1));
+        Assert.assertEquals(6, buf.getInt(2));
+        Assert.assertEquals(7, buf.getInt(3));
+        Assert.assertEquals(8, buf.getInt(4));
+        Assert.assertEquals(9, buf.getInt(5));
+
+        //seqnumが対応していることを確認
+        Assert.assertEquals(4, buf.getSeqNum(0));
+        Assert.assertEquals(5, buf.getSeqNum(1));
+        Assert.assertEquals(6, buf.getSeqNum(2));
+        Assert.assertEquals(7, buf.getSeqNum(3));
+        Assert.assertEquals(8, buf.getSeqNum(4));
+        Assert.assertEquals(9, buf.getSeqNum(5));
+    }
+
+    //ensureSizeでsize < = maxSizeのときは何もしないことの確認
+    @Test
+    public void testEnsureSizeNoOp() {
+        ProposedmethodBuffer buf = new ProposedmethodBuffer(int.class, 16, PrometObjectRecordingStrategy.Weak);
+
+        //0~4の5個を追加
+        for (int i = 0; i < 5; i++) {
+            buf.addInt(i, i, 0);
+        }
+        Assert.assertEquals(5, buf.size());
+
+        int removed = buf.ensureSize(10);
+
+        //何も削除されない, sizeは5のまま
+        Assert.assertEquals(0, removed);
+        Assert.assertEquals(5, buf.size());
+    }
 }
