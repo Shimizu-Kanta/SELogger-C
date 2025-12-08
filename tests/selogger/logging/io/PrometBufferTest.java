@@ -140,4 +140,60 @@ public class PrometBufferTest {
         //seqnumが対応していることを確認
         Assert.assertEquals(4, buf.getSeqNum(0));
     }
+
+    //リングバッファになった後のensureSizeの動作確認
+    @Test
+    public void testEnsureSizeAfterWrapAround() {
+        ProposedmethodBuffer buf = new ProposedmethodBuffer(int.class, 4, PrometObjectRecordingStrategy.Weak);
+
+        //0~5の6個を追加
+        for (int i = 0; i < 8; i++) {
+            buf.addInt(i, i, 0);
+        }
+        Assert.assertEquals(4, buf.size());
+
+        //現状確認
+        Assert.assertEquals(4, buf.getInt(0));
+        Assert.assertEquals(7, buf.getInt(3));
+
+        int removed = buf.ensureSize(2);
+
+        //2個削除される, sizeは2になる
+        Assert.assertEquals(2, removed);
+        Assert.assertEquals(2, buf.size());
+
+        //最新の2つが保存されていることを確認
+        Assert.assertEquals(6, buf.getInt(0));
+        Assert.assertEquals(7, buf.getInt(1));
+
+        //seqnumが対応していることを確認
+        Assert.assertEquals(6, buf.getSeqNum(0));
+        Assert.assertEquals(7, buf.getSeqNum(1));
+    }
+
+    //繰り返しensureSizeを呼び出したときの動作確認
+    @Test
+    public void testRepeatedEnsureSize() {
+        ProposedmethodBuffer buf = new ProposedmethodBuffer(int.class, 16, PrometObjectRecordingStrategy.Weak);
+
+        //0~9の10個を追加
+        for (int i = 0; i < 10; i++) {
+            buf.addInt(i, i, 0);
+        }
+        Assert.assertEquals(10, buf.size());
+
+        //最初のensureSize(k=6まで削る)
+        int removed = buf.ensureSize(6);
+        Assert.assertEquals(4, removed);
+        Assert.assertEquals(6, buf.size());
+        Assert.assertEquals(4, buf.getInt(0));
+        Assert.assertEquals(9, buf.getInt(5));
+
+        //2回目のensureSize(k=8にする。何もしないはず)
+        removed = buf.ensureSize(8);
+        Assert.assertEquals(0, removed);
+        Assert.assertEquals(6, buf.size());
+        Assert.assertEquals(4, buf.getInt(0));
+        Assert.assertEquals(9, buf.getInt(5));
+    }
 }
