@@ -260,8 +260,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, boolean value) {
     	ProposedmethodBuffer buffer = prepareBuffer(boolean.class, dataId);
     	if (buffer != null) {
+			int before_size = buffer.size();
 			buffer.addBoolean(value, seqnum.getAndIncrement(), ThreadId.get());
-        	event_count++;
+			int after_size = buffer.size();
+        	event_count += after_size - before_size;
 			put_data_count += 1;
         	if (event_count > list_capacity) {
 				trimBuffers();
@@ -276,8 +278,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, byte value) {
     	ProposedmethodBuffer buffer = prepareBuffer(byte.class, dataId);
     	if (buffer != null) {
-    	    event_count++;
-			buffer.addByte(value, seqnum.getAndIncrement(), ThreadId.get());
+			int before_size = buffer.size();
+    	    buffer.addByte(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+        	event_count += after_size - before_size;
 			put_data_count += 1;
     	    if (event_count > list_capacity) {
             	trimBuffers();
@@ -292,8 +296,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, char value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(char.class, dataId);
 	    if (buffer != null) {
+			int before_size = buffer.size();
 			buffer.addChar(value, seqnum.getAndIncrement(), ThreadId.get());
-	        event_count++;
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
@@ -308,8 +314,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, double value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(double.class, dataId);
 	    if (buffer != null) {
+			int before_size = buffer.size();
 			buffer.addDouble(value, seqnum.getAndIncrement(), ThreadId.get());
-	        event_count++;
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
@@ -324,8 +332,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, float value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(float.class, dataId);
 	    if (buffer != null) {
+			int before_size = buffer.size();
 	        buffer.addFloat(value, seqnum.getAndIncrement(), ThreadId.get());
-	        event_count++;
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
@@ -340,8 +350,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, int value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(int.class, dataId);
 	    if (buffer != null) {
+			int before_size = buffer.size();
 	        buffer.addInt(value, seqnum.getAndIncrement(), ThreadId.get());
-			event_count++;
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
@@ -356,8 +368,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, long value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(long.class, dataId);
 	    if (buffer != null) {
+			int before_size = buffer.size();
 	        buffer.addLong(value, seqnum.getAndIncrement(), ThreadId.get());
-			event_count++;
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
@@ -374,8 +388,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	        ProposedmethodBuffer b = prepareBuffer(ObjectId.class, dataId);
 	        if (b != null) {
 	            ObjectId id = objectIDs.getObjectId(value);
+				int before_size = b.size();
 	            b.addObjectId(id, seqnum.getAndIncrement(), ThreadId.get());
-	            event_count++;
+				int after_size = b.size();
+	            event_count += after_size - before_size;
 				put_data_count += 1;
 	            if (event_count > list_capacity) {
             		trimBuffers();
@@ -384,8 +400,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	    } else {
 	        ProposedmethodBuffer b = prepareBuffer(Object.class, dataId);
 	        if (b != null) {
+	            int before_size = b.size();
 	            b.addObject(value, seqnum.getAndIncrement(), ThreadId.get());
-				event_count++;
+				int after_size = b.size();
+	            event_count += after_size - before_size;
 				put_data_count += 1;
 	            if (event_count > list_capacity) {
             		trimBuffers();
@@ -401,8 +419,10 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, short value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(short.class, dataId);
 	    if (buffer != null) {
+			int before_size = buffer.size();
 	        buffer.addShort(value, seqnum.getAndIncrement(), ThreadId.get());
-			event_count++;
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
