@@ -260,13 +260,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, boolean value) {
     	ProposedmethodBuffer buffer = prepareBuffer(boolean.class, dataId);
     	if (buffer != null) {
+			buffer.addBoolean(value, seqnum.getAndIncrement(), ThreadId.get());
         	event_count++;
 			put_data_count += 1;
         	if (event_count > list_capacity) {
 				trimBuffers();
         	}
-			event_count -= buffer.ensureSize(maxBufferSize);
-        	buffer.addBoolean(value, seqnum.getAndIncrement(), ThreadId.get());
     	}
 	}
 	
@@ -278,12 +277,11 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
     	ProposedmethodBuffer buffer = prepareBuffer(byte.class, dataId);
     	if (buffer != null) {
     	    event_count++;
+			buffer.addByte(value, seqnum.getAndIncrement(), ThreadId.get());
 			put_data_count += 1;
     	    if (event_count > list_capacity) {
             	trimBuffers();
     	    }
-			event_count -= buffer.ensureSize(maxBufferSize);
-    	   	buffer.addByte(value, seqnum.getAndIncrement(), ThreadId.get());
     	}
 	}
 	
@@ -294,13 +292,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, char value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(char.class, dataId);
 	    if (buffer != null) {
+			buffer.addChar(value, seqnum.getAndIncrement(), ThreadId.get());
 	        event_count++;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addChar(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -311,13 +308,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, double value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(double.class, dataId);
 	    if (buffer != null) {
+			buffer.addDouble(value, seqnum.getAndIncrement(), ThreadId.get());
 	        event_count++;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addDouble(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -328,13 +324,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, float value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(float.class, dataId);
 	    if (buffer != null) {
+	        buffer.addFloat(value, seqnum.getAndIncrement(), ThreadId.get());
 	        event_count++;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addFloat(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -345,13 +340,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, int value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(int.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+	        buffer.addInt(value, seqnum.getAndIncrement(), ThreadId.get());
+			event_count++;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addInt(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -362,13 +356,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, long value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(long.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+	        buffer.addLong(value, seqnum.getAndIncrement(), ThreadId.get());
+			event_count++;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addLong(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -381,24 +374,22 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	        ProposedmethodBuffer b = prepareBuffer(ObjectId.class, dataId);
 	        if (b != null) {
 	            ObjectId id = objectIDs.getObjectId(value);
+	            b.addObjectId(id, seqnum.getAndIncrement(), ThreadId.get());
 	            event_count++;
 				put_data_count += 1;
 	            if (event_count > list_capacity) {
             		trimBuffers();
 	            }
-				event_count -= b.ensureSize(maxBufferSize);
-	            b.addObjectId(id, seqnum.getAndIncrement(), ThreadId.get());
 	        }				
 	    } else {
 	        ProposedmethodBuffer b = prepareBuffer(Object.class, dataId);
 	        if (b != null) {
-	            event_count++;
+	            b.addObject(value, seqnum.getAndIncrement(), ThreadId.get());
+				event_count++;
 				put_data_count += 1;
 	            if (event_count > list_capacity) {
             		trimBuffers();
 	            }
-				event_count -= b.ensureSize(maxBufferSize);
-	            b.addObject(value, seqnum.getAndIncrement(), ThreadId.get());
 	        }
 	    }
 	}
@@ -410,13 +401,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, short value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(short.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+	        buffer.addShort(value, seqnum.getAndIncrement(), ThreadId.get());
+			event_count++;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addShort(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}	
 

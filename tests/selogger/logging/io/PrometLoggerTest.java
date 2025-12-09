@@ -63,4 +63,31 @@ public class PrometLoggerTest {
         Assert.assertEquals(40, buf.getInt(1));
         Assert.assertEquals(50, buf.getInt(2));
     }
+
+    //2.複数バッファに対してのテスト
+    //2-1.複数バッファに対してlistCapacity未満のイベント追加
+    @Test
+    public void testMultiBuffer_UnderCapacity() {
+        ProposedmethodLogger logger = createLogger(4);
+
+        //dataId=0に3つ, dataId=1に2つのイベントを追加
+        logger.recordEvent(0, 10);
+        logger.recordEvent(0, 20);
+        logger.recordEvent(0, 30);
+        logger.recordEvent(1, 100);
+        logger.recordEvent(1, 200);
+
+        ProposedmethodBuffer buf0 = logger.prepareBuffer(int.class, 0);
+        ProposedmethodBuffer buf1 = logger.prepareBuffer(int.class, 1);
+
+        //dataId=0のバッファ確認
+        Assert.assertEquals(2, buf0.size());
+        Assert.assertEquals(20, buf0.getInt(0));
+        Assert.assertEquals(30, buf0.getInt(1));
+
+        //dataId=1のバッファ確認
+        Assert.assertEquals(2, buf1.size());
+        Assert.assertEquals(100, buf1.getInt(0));
+        Assert.assertEquals(200, buf1.getInt(1));
+    }
 }
