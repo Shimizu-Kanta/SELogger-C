@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.Assert;
 
 import selogger.logging.io.ProposedmethodLogger.PrometObjectRecordingStrategy;
+import selogger.testdata.ClassLoaderMain.A;
 
 public class PrometLoggerTest {
     //ProposedmethodLoggerの生成ヘルパーメソッド
@@ -89,5 +90,39 @@ public class PrometLoggerTest {
         Assert.assertEquals(2, buf1.size());
         Assert.assertEquals(100, buf1.getInt(0));
         Assert.assertEquals(200, buf1.getInt(1));
+    }
+
+    //2-2.複数バッファに対して均一でないときのトリム
+    @Test
+    public void testMultiBuffer_TrimNonUniform() {
+        ProposedmethodLogger logger = createLogger(5);
+
+        logger.recordEvent(0, 10);
+        logger.recordEvent(0, 20);  
+        logger.recordEvent(0, 30);
+
+        logger.recordEvent(1, 100);
+        logger.recordEvent(1, 200); 
+
+        logger.recordEvent(2, 1000);
+
+        ProposedmethodBuffer buf0 = logger.prepareBuffer(int.class, 0);
+        ProposedmethodBuffer buf1 = logger.prepareBuffer(int.class, 1);
+        ProposedmethodBuffer buf2 = logger.prepareBuffer(int.class, 2);
+
+        Assert.assertEquals(2, buf0.size());
+        Assert.assertEquals(2, buf1.size());
+        Assert.assertEquals(1, buf2.size());
+
+        Assert.assertEquals(20, buf0.getInt(0));
+        Assert.assertEquals(30, buf0.getInt(1));
+
+        Assert.assertEquals(100, buf1.getInt(0));
+        Assert.assertEquals(200, buf1.getInt(1));
+
+        Assert.assertEquals(1000, buf2.getInt(0));
+
+        int totalSize = buf0.size() + buf1.size() + buf2.size();
+        Assert.assertEquals(5, totalSize);
     }
 }
