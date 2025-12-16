@@ -1,10 +1,15 @@
 package selogger.logging.io;
 
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop;
+
 import org.junit.Assert;
 
 import selogger.logging.io.ProposedmethodLogger.PrometObjectRecordingStrategy;
 import selogger.testdata.ClassLoaderMain.A;
+
+import java.lang.Math;
 
 public class PrometLoggerTest {
     //ProposedmethodLoggerの生成ヘルパーメソッド
@@ -125,4 +130,57 @@ public class PrometLoggerTest {
         int totalSize = buf0.size() + buf1.size() + buf2.size();
         Assert.assertEquals(5, totalSize);
     }
+
+    //2-3.複数バッファに対してlistCapacity超過のイベント追加
+    @Test
+    public void testManyBuffers_ExtremeOverCapacity() {
+        int listCapacity = 10;
+        ProposedmethodLogger logger = createLogger(listCapacity);
+
+        int numBuffers = 20;
+        for (int dataId = 0; dataId < numBuffers; dataId++) {
+            logger.recordEvent(dataId, dataId * 10);
+            logger.recordEvent(dataId, dataId * 10 + 1);
+        }
+
+        int totalSize = 0;
+        for (int dataid = 0; dataid < numBuffers; dataid++) {
+            ProposedmethodBuffer buf = logger.prepareBuffer(int.class, dataid);
+
+            Assert.assertTrue(buf.size() >= 1);
+            totalSize += buf.size();
+        }
+        Assert.assertTrue(totalSize >= numBuffers);
+    }
+
+    //2-4.ランダム追加しても壊れないか
+    @Test
+    public void testManyRandomEvents () {
+        int listCapacity = 50;
+        ProposedmethodLogger logger = createLogger(listCapacity);
+
+        int numDataIds = 5;
+
+        for (int i = 0; i < 200; i++) {
+            int dataId = (int)(Math.random() * numDataIds);
+            int value = (int)(Math.random() * 100);
+            logger.recordEvent(dataId, value);
+        }
+
+        int totalSize = 0;
+        int maxObservedSize = 0;
+
+        for (int dataId = 0; dataId < numDataIds; dataId++) {
+            ProposedmethodBuffer buf = logger.prepareBuffer(int.class, dataId);
+            if(buf == null) continue;
+            int bufSize = buf.size();
+            totalSize += bufSize;
+            maxObservedSize = Math.max(maxObservedSize, bufSize);
+        }
+
+        Assert.assertTrue(totalSize <= 200);
+        Assert.assertTrue(maxObservedSize <= listCapacity);
+
+    }
+
 }
