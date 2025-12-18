@@ -102,13 +102,6 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 
 	/**
 	 * (追加要素)
-	 * トリムするデータ数
-	 * デフォルトは16
-	 */
-	private int trimSize = 16;
-
-	/**
-	 * (追加要素)
 	 * 現段階でのバッファサイズの許容値
 	 * このサイズのバッファサイズまでは許す
 	 */
@@ -138,11 +131,6 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 * データが追加された回数を知る
 	 */
 	private int put_data_count = 0;
-
-	/*
-	 * 最大バッファのリスト
-	 */
-	private ArrayList<ProposedmethodBuffer> max_buffers;
 	
 	/**
 	 * このオブジェクトは各イベントにシーケンス番号を生成する。
@@ -162,12 +150,11 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 * @param keepObject バッファがJavaオブジェクトを保持する方法を指定します。 
 	 * @param outputJson ロガーがjsonフォーマットを使用するかどうかを指定します。
 	 */
-	public ProposedmethodLogger(File traceFile, int bufferSize, int trimSize, boolean show_bufferSize, PrometObjectRecordingStrategy keepObject, boolean outputJson, IErrorLogger errorLogger) {
+	public ProposedmethodLogger(File traceFile, int bufferSize, boolean show_bufferSize, PrometObjectRecordingStrategy keepObject, boolean outputJson, IErrorLogger errorLogger) {
 		super("Promet");
 		this.traceFile = traceFile;
 		this.bufferSize = bufferSize;
 		this.list_capacity = bufferSize;
-		this.trimSize = trimSize;
 		this.buffers = new ArrayList<>();
 		this.keepObject = keepObject;
 		this.outputJson = outputJson;
@@ -273,13 +260,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, boolean value) {
     	ProposedmethodBuffer buffer = prepareBuffer(boolean.class, dataId);
     	if (buffer != null) {
-        	event_count++;
+			int before_size = buffer.size();
+			buffer.addBoolean(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+        	event_count += after_size - before_size;
 			put_data_count += 1;
         	if (event_count > list_capacity) {
 				trimBuffers();
         	}
-			event_count -= buffer.ensureSize(maxBufferSize);
-        	buffer.addBoolean(value, seqnum.getAndIncrement(), ThreadId.get());
     	}
 	}
 	
@@ -290,13 +278,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, byte value) {
     	ProposedmethodBuffer buffer = prepareBuffer(byte.class, dataId);
     	if (buffer != null) {
-    	    event_count++;
+			int before_size = buffer.size();
+    	    buffer.addByte(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+        	event_count += after_size - before_size;
 			put_data_count += 1;
     	    if (event_count > list_capacity) {
             	trimBuffers();
     	    }
-			event_count -= buffer.ensureSize(maxBufferSize);
-    	   	buffer.addByte(value, seqnum.getAndIncrement(), ThreadId.get());
     	}
 	}
 	
@@ -307,13 +296,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, char value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(char.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+			int before_size = buffer.size();
+			buffer.addChar(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addChar(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -324,13 +314,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, double value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(double.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+			int before_size = buffer.size();
+			buffer.addDouble(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addDouble(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -341,13 +332,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, float value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(float.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+			int before_size = buffer.size();
+	        buffer.addFloat(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addFloat(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -358,13 +350,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, int value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(int.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+			int before_size = buffer.size();
+	        buffer.addInt(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addInt(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -375,13 +368,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, long value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(long.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+			int before_size = buffer.size();
+	        buffer.addLong(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addLong(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}
 	
@@ -394,24 +388,26 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	        ProposedmethodBuffer b = prepareBuffer(ObjectId.class, dataId);
 	        if (b != null) {
 	            ObjectId id = objectIDs.getObjectId(value);
-	            event_count++;
+				int before_size = b.size();
+	            b.addObjectId(id, seqnum.getAndIncrement(), ThreadId.get());
+				int after_size = b.size();
+	            event_count += after_size - before_size;
 				put_data_count += 1;
 	            if (event_count > list_capacity) {
             		trimBuffers();
 	            }
-				event_count -= b.ensureSize(maxBufferSize);
-	            b.addObjectId(id, seqnum.getAndIncrement(), ThreadId.get());
 	        }				
 	    } else {
 	        ProposedmethodBuffer b = prepareBuffer(Object.class, dataId);
 	        if (b != null) {
-	            event_count++;
+	            int before_size = b.size();
+	            b.addObject(value, seqnum.getAndIncrement(), ThreadId.get());
+				int after_size = b.size();
+	            event_count += after_size - before_size;
 				put_data_count += 1;
 	            if (event_count > list_capacity) {
             		trimBuffers();
 	            }
-				event_count -= b.ensureSize(maxBufferSize);
-	            b.addObject(value, seqnum.getAndIncrement(), ThreadId.get());
 	        }
 	    }
 	}
@@ -423,82 +419,118 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	public void recordEvent(int dataId, short value) {
 	    ProposedmethodBuffer buffer = prepareBuffer(short.class, dataId);
 	    if (buffer != null) {
-	        event_count++;
+			int before_size = buffer.size();
+	        buffer.addShort(value, seqnum.getAndIncrement(), ThreadId.get());
+			int after_size = buffer.size();
+	        event_count += after_size - before_size;
 			put_data_count += 1;
 	        if (event_count > list_capacity) {
             	trimBuffers();
 	        }
-			event_count -= buffer.ensureSize(maxBufferSize);
-	        buffer.addShort(value, seqnum.getAndIncrement(), ThreadId.get());
 	    }
 	}	
 
 	/**
 	 * イベント数が許容量を超えた場合にトリム(削除)を行う
+	 * 
+	 * 方針:
+	 *  - 各バッファの size() を freq とみなし、
+	 *    S(k) = Σ min(k, size_i) が list_capacity 以下となる最大の k を二分探索で決定する。
+	 *  - k の下限は 1 とし、「イベントが存在するバッファには最低 1 件残す」ことを保証する。
+	 *  - list_capacity < 非空バッファ数 のような場合は、S(k) <= list_capacity を満たす k は存在しないため、
+	 *    その場合でも k = 1 を採用し、limit 超過は許容する。
 	 */
 	private void trimBuffers() {
-		System.out.println("Start Trim!(eventCount:" + event_count +")");
-		while (event_count > list_capacity) {
-			maxBufferSize -= trimSize;
-			if(maxBufferSize <= 0) maxBufferSize = 1;
-			System.out.println("Set Max Buffer Size:" + maxBufferSize);
-			decre_buffer += 1;
-
-			max_buffers = new ArrayList<>();
-			int max_count = 0;
-			for (ProposedmethodBuffer buffer : buffers) {
-				if (buffer == null) {
-					continue; // null の場合はスキップ
-				}
-				if (buffer.size() == max_count) {
-					max_buffers.add(buffer);
-				}
-				if (buffer.size() > max_count) {
-					max_buffers.clear();
-					max_buffers.add(buffer);
-					max_count = buffer.size();
-				}
-			}
-
-			for (ProposedmethodBuffer buffer : max_buffers) {
-				int trimAmount = Math.min(trimSize, buffer.size());
-				System.out.println("Trim Buffer Size:" + buffer.size() +"(max_trim)");
-				buffer.trimOldEvents(trimAmount);
-				trim_count += 1;
-				event_count -= trimAmount;
-
-				System.out.println("Trim Data Amount:" + trimAmount);
-			}
-
-			if (event_count <= list_capacity) {
-				System.out.println("End Trim!(eventCount:" + event_count + ")");
-				return; // 必要なトリム量を満たしたら終了
-			}
-
-			for (ProposedmethodBuffer buffer : buffers) {
-				if (buffer == null) {
-					continue; // null の場合はスキップ
-				}
-				if (buffer.size() > maxBufferSize) {
-					int trimAmount = buffer.size() - maxBufferSize;
-					System.out.println("Trim Buffer :" + buffer.size() + "(limit_trim)");
-					buffer.trimOldEvents(trimAmount);
-					trim_count += 1;
-					event_count -= trimAmount;
-
-					System.out.println("Trim Data Amount:" + trimAmount);
-
-					if (event_count <= list_capacity) {
-						System.out.println("End Trim!(eventCount:" + event_count + ")");
-						return; // 必要なトリム量を満たしたら終了
-					}
-				}
-			}
-
-			if(maxBufferSize == 1) break;
-
+		System.out.println("Start Trim! (eventCount: " + event_count + ")");
+		if (event_count <= list_capacity) {
+			// 許容量内であればトリムは不要
+			return;
 		}
+
+		// 1. 各バッファの現在のサイズを収集し、max_count を見つける
+		ArrayList<Integer> sizes = new ArrayList<>();
+		int max_count = 0;
+		for (ProposedmethodBuffer buffer : buffers) {
+			if (buffer == null) continue;
+			int size = buffer.size();
+			sizes.add(size);
+			if (size > max_count) {
+				max_count = size;
+			}
+		}
+
+		// イベントが存在しないか、max_count が 0 の場合はトリム不要
+		if (max_count == 0) {
+			return;
+		}
+
+		// 2. k の二分探索の範囲を設定 [1, max_count]
+		int low = 1;
+		int high = max_count;
+		int bestK = 1;             // 条件を満たす中で最大の k
+		boolean foundFeasible = false;
+
+		// 3. 最大の k を二分探索で見つける（合計が list_capacity 以下となる k）
+		while (low <= high) {
+			int mid = (low + high) >>> 1;  // mid-point
+			long totalEvents = 0L;
+
+			// 各バッファを 'mid' に切り詰めた場合の合計イベント数を計算
+			for (int size : sizes) {
+				totalEvents += (size <= mid ? size : mid); // Σ min(mid, size)
+				// 合計イベント数が許容量を超えたら早期終了
+				if (totalEvents > list_capacity) {
+					break;
+				}
+			}
+
+			if (totalEvents <= list_capacity) {
+				// mid は許容量を超えない閾値として有効
+				foundFeasible = true;
+				bestK = mid;
+				low = mid + 1;    // より大きな k を試す
+			} else {
+				// mid が高すぎるため、閾値を下げる
+				high = mid - 1;
+			}
+		}
+
+		// S(k) <= list_capacity を満たす k が存在しない場合でも、
+		// 「各バッファに最低 1 件は残す」ため bestK = 1 を用いる。
+		if (!foundFeasible) {
+			bestK = 1;
+		}
+		// 念のための下限チェック（仕様として 1 未満にはしない）
+		if (bestK < 1) {
+			bestK = 1;
+		}
+
+		// グローバルな maxBufferSize を新しい閾値に更新
+		maxBufferSize = bestK;
+		decre_buffer += 1;
+		System.out.println("Set Max Buffer Size: " + maxBufferSize);
+
+		// 4. 各バッファを bestK にトリムし、カウントを更新
+		int totalTrimmed = 0;
+		for (ProposedmethodBuffer buffer : buffers) {
+			if (buffer == null) continue;
+			int before = buffer.size();
+			int removed = buffer.ensureSize(bestK);
+			if (removed > 0) {
+				int after = buffer.size();
+				totalTrimmed += removed;
+				trim_count += 1;
+				System.out.println(
+					"Trimmed " + removed + " old events from buffer (size " + before + " -> " + after + ")"
+				);
+			}
+		}
+		// グローバルな event_count をトリムしたイベント数だけ減少
+		event_count -= totalTrimmed;
+
+		System.out.println("End Trim! (eventCount: " + event_count + ")");
 	}
+
 	
 	/**
 	 * イベントが存在すればtrueを返す

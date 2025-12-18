@@ -5,12 +5,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import selogger.logging.io.BinaryStreamLogger;
 import selogger.logging.io.DiscardLogger;
 import selogger.logging.io.EventFrequencyLogger;
 import selogger.logging.io.FilterLogger;
 import selogger.logging.io.LatestEventLogger;
 import selogger.logging.io.TextStreamLogger;
+import selogger.logging.io.ProposedmethodLogger;
 
 public class RuntimeWeaverTest {
 	
@@ -26,14 +26,6 @@ public class RuntimeWeaverTest {
 
 		RuntimeWeaver w = new RuntimeWeaver("format=omni" + outputOption);
 		Assert.assertTrue(w.logger instanceof TextStreamLogger);
-		w.close();
-
-		w = new RuntimeWeaver("format=omnitext" + outputOption);
-		Assert.assertTrue(w.logger instanceof TextStreamLogger);
-		w.close();
-
-		w = new RuntimeWeaver("format=omnibinary" + outputOption);
-		Assert.assertTrue(w.logger instanceof BinaryStreamLogger);
 		w.close();
 
 		w = new RuntimeWeaver("format=nearomni" + outputOption);
@@ -63,6 +55,10 @@ public class RuntimeWeaverTest {
 		
 		w = new RuntimeWeaver("format=discard");
 		Assert.assertTrue(w.logger instanceof DiscardLogger);
+		w.close();
+
+		w = new RuntimeWeaver("format=promet" + outputOption);
+		Assert.assertTrue(w.logger instanceof ProposedmethodLogger);
 		w.close();
 
 	}
