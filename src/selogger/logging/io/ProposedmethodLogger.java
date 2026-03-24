@@ -131,6 +131,37 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 * データが追加された回数を知る
 	 */
 	private int put_data_count = 0;
+
+	/**
+	 * 全型対応の共通イベントバッファ（提案手法）
+	 */
+	private ArrayList<SharedEventRecord> sharedEvents = new ArrayList<>();
+
+	/**
+	 * dataIdごとのイベント件数（全型）
+	 */
+	private ArrayList<Integer> sharedEventCounts = new ArrayList<>();
+
+	/**
+	 * dataIdごとの値型
+	 */
+	private ArrayList<Class<?>> dataIdTypes = new ArrayList<>();
+
+	private static class SharedEventRecord {
+		private final int dataId;
+		private final Object value;
+		private final Class<?> valueType;
+		private final long seq;
+		private final int threadId;
+
+		private SharedEventRecord(int dataId, Object value, Class<?> valueType, long seq, int threadId) {
+			this.dataId = dataId;
+			this.value = value;
+			this.valueType = valueType;
+			this.seq = seq;
+			this.threadId = threadId;
+		}
+	}
 	
 	/**
 	 * このオブジェクトは各イベントにシーケンス番号を生成する。
@@ -189,6 +220,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 		}
 		buffers = null;
 		buffers = new ArrayList<>();
+		sharedEvents = null;
+		sharedEvents = new ArrayList<>();
+		sharedEventCounts = null;
+		sharedEventCounts = new ArrayList<>();
+		dataIdTypes = null;
+		dataIdTypes = new ArrayList<>();
 	}
 
 
@@ -231,6 +268,9 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 * @return データIDのバッファを返す。
 	 */
 	protected synchronized ProposedmethodBuffer prepareBuffer(Class<?> type, int dataId) {
+		if (hasSharedEvents(dataId)) {
+			return createSnapshotBuffer(dataId, type);
+		}
 		if (!closed) {
 			try {
 				while (buffers.size() <= dataId) {
@@ -258,17 +298,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public void recordEvent(int dataId, boolean value) {
-    	ProposedmethodBuffer buffer = prepareBuffer(boolean.class, dataId);
-    	if (buffer != null) {
-			int before_size = buffer.size();
-			buffer.addBoolean(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-        	event_count += after_size - before_size;
-			put_data_count += 1;
-        	if (event_count > list_capacity) {
-				trimBuffers();
-        	}
-    	}
+		appendSharedEvent(dataId, Boolean.valueOf(value), boolean.class);
 	}
 	
 	/**
@@ -276,17 +306,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public void recordEvent(int dataId, byte value) {
-    	ProposedmethodBuffer buffer = prepareBuffer(byte.class, dataId);
-    	if (buffer != null) {
-			int before_size = buffer.size();
-    	    buffer.addByte(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-        	event_count += after_size - before_size;
-			put_data_count += 1;
-    	    if (event_count > list_capacity) {
-            	trimBuffers();
-    	    }
-    	}
+		appendSharedEvent(dataId, Byte.valueOf(value), byte.class);
 	}
 	
 	/**
@@ -294,17 +314,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public void recordEvent(int dataId, char value) {
-	    ProposedmethodBuffer buffer = prepareBuffer(char.class, dataId);
-	    if (buffer != null) {
-			int before_size = buffer.size();
-			buffer.addChar(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-	        event_count += after_size - before_size;
-			put_data_count += 1;
-	        if (event_count > list_capacity) {
-            	trimBuffers();
-	        }
-	    }
+		appendSharedEvent(dataId, Character.valueOf(value), char.class);
 	}
 	
 	/**
@@ -312,17 +322,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public void recordEvent(int dataId, double value) {
-	    ProposedmethodBuffer buffer = prepareBuffer(double.class, dataId);
-	    if (buffer != null) {
-			int before_size = buffer.size();
-			buffer.addDouble(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-	        event_count += after_size - before_size;
-			put_data_count += 1;
-	        if (event_count > list_capacity) {
-            	trimBuffers();
-	        }
-	    }
+		appendSharedEvent(dataId, Double.valueOf(value), double.class);
 	}
 	
 	/**
@@ -330,35 +330,15 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public void recordEvent(int dataId, float value) {
-	    ProposedmethodBuffer buffer = prepareBuffer(float.class, dataId);
-	    if (buffer != null) {
-			int before_size = buffer.size();
-	        buffer.addFloat(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-	        event_count += after_size - before_size;
-			put_data_count += 1;
-	        if (event_count > list_capacity) {
-            	trimBuffers();
-	        }
-	    }
+		appendSharedEvent(dataId, Float.valueOf(value), float.class);
 	}
 	
 	/**
 	 * イベントと観測値を記録する。
 	 */
 	@Override
-	public void recordEvent(int dataId, int value) {
-	    ProposedmethodBuffer buffer = prepareBuffer(int.class, dataId);
-	    if (buffer != null) {
-			int before_size = buffer.size();
-	        buffer.addInt(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-	        event_count += after_size - before_size;
-			put_data_count += 1;
-	        if (event_count > list_capacity) {
-            	trimBuffers();
-	        }
-	    }
+	public synchronized void recordEvent(int dataId, int value) {
+		appendSharedEvent(dataId, Integer.valueOf(value), int.class);
 	}
 	
 	/**
@@ -366,17 +346,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public void recordEvent(int dataId, long value) {
-	    ProposedmethodBuffer buffer = prepareBuffer(long.class, dataId);
-	    if (buffer != null) {
-			int before_size = buffer.size();
-	        buffer.addLong(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-	        event_count += after_size - before_size;
-			put_data_count += 1;
-	        if (event_count > list_capacity) {
-            	trimBuffers();
-	        }
-	    }
+		appendSharedEvent(dataId, Long.valueOf(value), long.class);
 	}
 	
 	/**
@@ -384,32 +354,16 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public synchronized void recordEvent(int dataId, Object value) {
-	    if (keepObject == PrometObjectRecordingStrategy.Id) {
-	        ProposedmethodBuffer b = prepareBuffer(ObjectId.class, dataId);
-	        if (b != null) {
-	            ObjectId id = objectIDs.getObjectId(value);
-				int before_size = b.size();
-	            b.addObjectId(id, seqnum.getAndIncrement(), ThreadId.get());
-				int after_size = b.size();
-	            event_count += after_size - before_size;
-				put_data_count += 1;
-	            if (event_count > list_capacity) {
-            		trimBuffers();
-	            }
-	        }				
-	    } else {
-	        ProposedmethodBuffer b = prepareBuffer(Object.class, dataId);
-	        if (b != null) {
-	            int before_size = b.size();
-	            b.addObject(value, seqnum.getAndIncrement(), ThreadId.get());
-				int after_size = b.size();
-	            event_count += after_size - before_size;
-				put_data_count += 1;
-	            if (event_count > list_capacity) {
-            		trimBuffers();
-	            }
-	        }
-	    }
+		Object storedValue;
+		Class<?> valueType;
+		if (keepObject == PrometObjectRecordingStrategy.Id) {
+			storedValue = objectIDs.getObjectId(value);
+			valueType = ObjectId.class;
+		} else {
+			storedValue = value;
+			valueType = Object.class;
+		}
+		appendSharedEvent(dataId, storedValue, valueType);
 	}
 	
 	/**
@@ -417,17 +371,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	public void recordEvent(int dataId, short value) {
-	    ProposedmethodBuffer buffer = prepareBuffer(short.class, dataId);
-	    if (buffer != null) {
-			int before_size = buffer.size();
-	        buffer.addShort(value, seqnum.getAndIncrement(), ThreadId.get());
-			int after_size = buffer.size();
-	        event_count += after_size - before_size;
-			put_data_count += 1;
-	        if (event_count > list_capacity) {
-            	trimBuffers();
-	        }
-	    }
+		appendSharedEvent(dataId, Short.valueOf(value), short.class);
 	}	
 
 	/**
@@ -453,6 +397,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 		for (ProposedmethodBuffer buffer : buffers) {
 			if (buffer == null) continue;
 			int size = buffer.size();
+			sizes.add(size);
+			if (size > max_count) {
+				max_count = size;
+			}
+		}
+		for (int i = 0; i < sharedEventCounts.size(); i++) {
+			int size = sharedEventCounts.get(i);
+			if (size <= 0) continue;
 			sizes.add(size);
 			if (size > max_count) {
 				max_count = size;
@@ -525,6 +477,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 				);
 			}
 		}
+		int sharedRemoved = trimSharedEvents(bestK);
+		if (sharedRemoved > 0) {
+			totalTrimmed += sharedRemoved;
+			trim_count += 1;
+			System.out.println("Trimmed " + sharedRemoved + " old events from shared buffer");
+		}
 		// グローバルな event_count をトリムしたイベント数だけ減少
 		event_count -= totalTrimmed;
 
@@ -537,7 +495,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	protected boolean isRecorded(int dataid) {
-		return dataid < buffers.size() && buffers.get(dataid) != null;
+		return hasSharedEvents(dataid) || (dataid < buffers.size() && buffers.get(dataid) != null);
 	}
 
 	/**
@@ -545,7 +503,14 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	protected void writeAttributes(JsonBuffer buf, DataInfo d) {
-		ProposedmethodBuffer b = buffers.get(d.getDataId());
+		ProposedmethodBuffer b;
+		if (hasSharedEvents(d.getDataId())) {
+			b = createSnapshotBuffer(d.getDataId(), getTypeByDescriptor(d.getValueDesc()));
+		} else if (d.getDataId() < buffers.size()) {
+			b = buffers.get(d.getDataId());
+		} else {
+			b = null;
+		}
 		if (b != null) {
 			b.writeJson(buf, d.getValueDesc() == Descriptor.Void);
 		}
@@ -564,11 +529,172 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	@Override
 	protected void writeAttributes(StringBuilder builder, DataInfo d) {
-		ProposedmethodBuffer b = buffers.get(d.getDataId());
+		ProposedmethodBuffer b;
+		if (hasSharedEvents(d.getDataId())) {
+			b = createSnapshotBuffer(d.getDataId(), getTypeByDescriptor(d.getValueDesc()));
+		} else if (d.getDataId() < buffers.size()) {
+			b = buffers.get(d.getDataId());
+		} else {
+			b = null;
+		}
 		if (b != null) {
 			builder.append(b.toString());
 		} else {
 			builder.append(ProposedmethodBuffer.getEmptyColumns(bufferSize));
+		}
+	}
+
+	private void ensureSharedCapacity(int dataId) {
+		while (sharedEventCounts.size() <= dataId) {
+			sharedEventCounts.add(0);
+		}
+		while (dataIdTypes.size() <= dataId) {
+			dataIdTypes.add(null);
+		}
+	}
+
+	private boolean hasSharedEvents(int dataId) {
+		return dataId >= 0 && dataId < sharedEventCounts.size() && sharedEventCounts.get(dataId) > 0;
+	}
+
+	private ProposedmethodBuffer createSnapshotBuffer(int dataId, Class<?> expectedType) {
+		Class<?> type = expectedType;
+		if (type == null && dataId < dataIdTypes.size()) {
+			type = dataIdTypes.get(dataId);
+		}
+		if (type == null) {
+			type = Object.class;
+		}
+		ProposedmethodBuffer snapshot = new ProposedmethodBuffer(type, maxBufferSize, keepObject);
+		for (SharedEventRecord event : sharedEvents) {
+			if (event.dataId == dataId) {
+				appendToBuffer(snapshot, event.valueType, event.value, event.seq, event.threadId);
+			}
+		}
+		return snapshot;
+	}
+
+	private int trimSharedEvents(int maxPerDataId) {
+		if (sharedEvents.isEmpty()) {
+			return 0;
+		}
+		int[] keepCounts = new int[sharedEventCounts.size()];
+		for (int i = 0; i < sharedEventCounts.size(); i++) {
+			int count = sharedEventCounts.get(i);
+			keepCounts[i] = (count <= maxPerDataId) ? count : maxPerDataId;
+		}
+
+		boolean[] keepFlags = new boolean[sharedEvents.size()];
+		int removed = 0;
+		for (int i = sharedEvents.size() - 1; i >= 0; i--) {
+			SharedEventRecord event = sharedEvents.get(i);
+			if (keepCounts[event.dataId] > 0) {
+				keepFlags[i] = true;
+				keepCounts[event.dataId]--;
+			} else {
+				removed++;
+			}
+		}
+
+		ArrayList<SharedEventRecord> newEvents = new ArrayList<>(sharedEvents.size() - removed);
+		for (int i = 0; i < sharedEvents.size(); i++) {
+			if (keepFlags[i]) {
+				newEvents.add(sharedEvents.get(i));
+			}
+		}
+		sharedEvents = newEvents;
+
+		ArrayList<Integer> newCounts = new ArrayList<>(sharedEventCounts.size());
+		for (int i = 0; i < sharedEventCounts.size(); i++) {
+			newCounts.add(0);
+		}
+		for (SharedEventRecord event : sharedEvents) {
+			newCounts.set(event.dataId, newCounts.get(event.dataId) + 1);
+		}
+		sharedEventCounts = newCounts;
+
+		return removed;
+	}
+
+	private synchronized void appendSharedEvent(int dataId, Object value, Class<?> valueType) {
+		if (closed) {
+			return;
+		}
+		try {
+			ensureSharedCapacity(dataId);
+			if (dataIdTypes.get(dataId) == null) {
+				dataIdTypes.set(dataId, valueType);
+			}
+			long seq = seqnum.getAndIncrement();
+			int threadId = ThreadId.get();
+			sharedEvents.add(new SharedEventRecord(dataId, value, valueType, seq, threadId));
+			sharedEventCounts.set(dataId, sharedEventCounts.get(dataId) + 1);
+			event_count += 1;
+			put_data_count += 1;
+			if (event_count > list_capacity) {
+				trimBuffers();
+			}
+		} catch (OutOfMemoryError e) {
+			closed = true;
+			buffers = null;
+			buffers = new ArrayList<>();
+			sharedEvents = null;
+			sharedEvents = new ArrayList<>();
+			sharedEventCounts = null;
+			sharedEventCounts = new ArrayList<>();
+			dataIdTypes = null;
+			dataIdTypes = new ArrayList<>();
+			logger.log("OutOfMemoryError: Logger discarded internal buffers to continue the current execution.");
+		}
+	}
+
+	private Class<?> getTypeByDescriptor(Descriptor descriptor) {
+		switch (descriptor) {
+		case Boolean:
+			return boolean.class;
+		case Byte:
+			return byte.class;
+		case Char:
+			return char.class;
+		case Short:
+			return short.class;
+		case Integer:
+			return int.class;
+		case Long:
+			return long.class;
+		case Float:
+			return float.class;
+		case Double:
+			return double.class;
+		case Void:
+			return Object.class;
+		case Object:
+		default:
+			return (keepObject == PrometObjectRecordingStrategy.Id) ? ObjectId.class : Object.class;
+		}
+	}
+
+	private void appendToBuffer(ProposedmethodBuffer snapshot, Class<?> valueType, Object value, long seq, int threadId) {
+		if (valueType == boolean.class) {
+			snapshot.addBoolean(((Boolean)value).booleanValue(), seq, threadId);
+		} else if (valueType == byte.class) {
+			snapshot.addByte(((Byte)value).byteValue(), seq, threadId);
+		} else if (valueType == char.class) {
+			snapshot.addChar(((Character)value).charValue(), seq, threadId);
+		} else if (valueType == short.class) {
+			snapshot.addShort(((Short)value).shortValue(), seq, threadId);
+		} else if (valueType == int.class) {
+			snapshot.addInt(((Integer)value).intValue(), seq, threadId);
+		} else if (valueType == long.class) {
+			snapshot.addLong(((Long)value).longValue(), seq, threadId);
+		} else if (valueType == float.class) {
+			snapshot.addFloat(((Float)value).floatValue(), seq, threadId);
+		} else if (valueType == double.class) {
+			snapshot.addDouble(((Double)value).doubleValue(), seq, threadId);
+		} else if (valueType == ObjectId.class) {
+			snapshot.addObjectId((ObjectId)value, seq, threadId);
+		} else {
+			snapshot.addObject(value, seq, threadId);
 		}
 	}
 	
