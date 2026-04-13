@@ -1,0 +1,19 @@
+Weaving configuration: EXEC,CALL,FIELD,ARRAY,SYNC,LABEL,PARAM,LOCAL,OBJECT,LINE
+Selected File Format: Promet
+Excluded by name filter: jdk/internal/vm/PostVMInitHook
+Excluded by name filter: jdk/internal/vm/PostVMInitHook$2
+Excluded by name filter: jdk/internal/util/EnvUtils
+Excluded by name filter: jdk/internal/vm/PostVMInitHook$1
+Excluded by name filter: sun/launcher/LauncherHelper
+Excluded by name filter: jdk/internal/loader/URLClassPath$FileLoader$1
+Weaving executed: Class=selogger/testdata/SimpleTarget, LoadedFrom=file:/C:/Users/kanta/github/selogger-0.5.1c/target/test-classes/, LogLevel=Normal, ClassHash=876dd42a83c477bc7f9588603144631e31a1bd6a, ClassLoaderID=Loader@2b193f2d:selogger/testdata/SimpleTarget
+Excluded by name filter: selogger/logging/util/ThreadId
+Excluded by name filter: selogger/logging/util/ThreadId$1
+Excluded by name filter: selogger/logging/io/ProposedmethodLogger$SharedEventRecord
+Excluded by name filter: java/util/IdentityHashMap$IdentityHashMapIterator
+Excluded by name filter: java/util/IdentityHashMap$KeyIterator
+Excluded by name filter: selogger/logging/util/JsonBuffer
+Excluded by name filter: selogger/logging/io/ProposedmethodBuffer
+Excluded by name filter: selogger/logging/util/ObjectId
+Excluded by name filter: java/io/FileOutputStream$1
+17ms used to save a trace

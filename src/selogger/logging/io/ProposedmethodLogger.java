@@ -568,6 +568,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 		if (type == null) {
 			type = Object.class;
 		}
+		// 出力用スナップショットも、trimSharedEventsで管理される現在の上限に合わせてmaxBufferSizeを使う。
 		ProposedmethodBuffer snapshot = new ProposedmethodBuffer(type, maxBufferSize, keepObject);
 		for (SharedEventRecord event : sharedEvents) {
 			if (event.dataId == dataId) {
