@@ -1,0 +1,31 @@
+Weaving configuration: EXEC,CALL,FIELD,ARRAY,SYNC,LABEL,PARAM,LOCAL,OBJECT,LINE
+Selected File Format: Promet
+Excluded by name filter: jdk/internal/vm/PostVMInitHook
+Excluded by name filter: jdk/internal/vm/PostVMInitHook$2
+Excluded by name filter: jdk/internal/util/EnvUtils
+Excluded by name filter: jdk/internal/vm/PostVMInitHook$1
+Excluded by name filter: sun/launcher/LauncherHelper
+Excluded by name filter: jdk/internal/loader/URLClassPath$FileLoader$1
+Weaving executed: Class=selogger/testdata/SimpleTarget, LoadedFrom=file:/C:/Users/kanta/github/selogger-0.5.1c/target/test-classes/, LogLevel=Normal, ClassHash=9803ade609bf9024000df64b193a0a952668c494, ClassLoaderID=Loader@2b193f2d:selogger/testdata/SimpleTarget
+Excluded by name filter: selogger/logging/util/ThreadId
+Excluded by name filter: selogger/logging/util/ThreadId$1
+Excluded by name filter: selogger/logging/io/ProposedmethodLogger$SharedEventRecord
+Excluded by name filter: selogger/logging/util/ObjectId
+Excluded by name filter: java/util/IdentityHashMap$IdentityHashMapIterator
+Excluded by name filter: java/util/IdentityHashMap$KeyIterator
+Excluded by name filter: selogger/logging/io/ProposedmethodBuffer
+Excluded by name filter: java/io/FileOutputStream$1
+Excluded by name filter: java/lang/Throwable$WrappedPrintStream
+Excluded by name filter: java/lang/Throwable$PrintStreamOrWriter
+java.lang.ClassCastException: class [Ljava.lang.Object; cannot be cast to class [I ([Ljava.lang.Object; and [I are in module java.base of loader 'bootstrap')
+Excluded by name filter: java/lang/StackTraceElement$HashedModules
+	at selogger.logging.io.ProposedmethodBuffer.addInt(ProposedmethodBuffer.java:125)
+	at selogger.logging.io.ProposedmethodLogger.appendToBuffer(ProposedmethodLogger.java:687)
+	at selogger.logging.io.ProposedmethodLogger.createSnapshotBuffer(ProposedmethodLogger.java:571)
+	at selogger.logging.io.ProposedmethodLogger.writeAttributes(ProposedmethodLogger.java:534)
+	at selogger.logging.io.AbstractEventLogger.saveText(AbstractEventLogger.java:64)
+	at selogger.logging.io.ProposedmethodLogger.close(ProposedmethodLogger.java:247)
+	at selogger.weaver.RuntimeWeaver.close(RuntimeWeaver.java:194)
+	at selogger.weaver.RuntimeWeaver$1.run(RuntimeWeaver.java:46)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+5ms used to save a trace

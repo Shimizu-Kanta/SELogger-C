@@ -558,9 +558,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	}
 
 	private ProposedmethodBuffer createSnapshotBuffer(int dataId, Class<?> expectedType) {
-		Class<?> type = expectedType;
-		if (type == null && dataId < dataIdTypes.size()) {
+		Class<?> type = null;
+		if (dataId < dataIdTypes.size()) {
 			type = dataIdTypes.get(dataId);
+		}
+		if (type == null) {
+			type = expectedType;
 		}
 		if (type == null) {
 			type = Object.class;
