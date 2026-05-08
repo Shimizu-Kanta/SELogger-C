@@ -132,6 +132,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	 */
 	private int put_data_count = 0;
 
+	/** 
+	 * (追加要素)
+	 * トリムするときに何割残すかの値
+	*/
+	private float trim_rate = 0.8f;
+
 	/**
 	 * 全型対応の共通イベントバッファ（提案手法）
 	 */
@@ -391,7 +397,11 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			return;
 		}
 
-		// 1. 各バッファの現在のサイズを収集し、max_count を見つける
+		//1.トリムする基準値を設定する
+		int targetCount = (int)(list_capacity * trim_rate);
+		
+
+		// 2. 各バッファの現在のサイズを収集し、max_count を見つける
 		ArrayList<Integer> sizes = new ArrayList<>();
 		int max_count = 0;
 		for (ProposedmethodBuffer buffer : buffers) {
@@ -431,12 +441,12 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			for (int size : sizes) {
 				totalEvents += (size <= mid ? size : mid); // Σ min(mid, size)
 				// 合計イベント数が許容量を超えたら早期終了
-				if (totalEvents > list_capacity) {
+				if (totalEvents > targetCount) {
 					break;
 				}
 			}
 
-			if (totalEvents <= list_capacity) {
+			if (totalEvents <= targetCount) {
 				// mid は許容量を超えない閾値として有効
 				foundFeasible = true;
 				bestK = mid;

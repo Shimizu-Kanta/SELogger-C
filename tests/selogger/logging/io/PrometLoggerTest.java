@@ -47,7 +47,7 @@ public class PrometLoggerTest {
     }
 
     //1-2.listCapacity超過のイベント追加
-    //リングバッファとして動作することを確認
+    //低水位トリム後の最新イベント保持を確認
     @Test
     public void testSingleBuffer_OverCapacity() {
         ProposedmethodLogger logger = createLogger(3);
@@ -61,13 +61,12 @@ public class PrometLoggerTest {
 
         ProposedmethodBuffer buf = logger.prepareBuffer(int.class, 0);
 
-        //sizeは3になる
-        Assert.assertEquals(3, buf.size());
+        //sizeは低水位トリムにより2になる
+        Assert.assertEquals(2, buf.size());
 
-        //最新の3つが保存されていることを確認
-        Assert.assertEquals(30, buf.getInt(0));
-        Assert.assertEquals(40, buf.getInt(1));
-        Assert.assertEquals(50, buf.getInt(2));
+        //最新の2つが保存されていることを確認
+        Assert.assertEquals(40, buf.getInt(0));
+        Assert.assertEquals(50, buf.getInt(1));
     }
 
     //2.複数バッファに対してのテスト
@@ -87,14 +86,12 @@ public class PrometLoggerTest {
         ProposedmethodBuffer buf1 = logger.prepareBuffer(int.class, 1);
 
         //dataId=0のバッファ確認
-        Assert.assertEquals(2, buf0.size());
-        Assert.assertEquals(20, buf0.getInt(0));
-        Assert.assertEquals(30, buf0.getInt(1));
+        Assert.assertEquals(1, buf0.size());
+        Assert.assertEquals(30, buf0.getInt(0));
 
         //dataId=1のバッファ確認
-        Assert.assertEquals(2, buf1.size());
-        Assert.assertEquals(100, buf1.getInt(0));
-        Assert.assertEquals(200, buf1.getInt(1));
+        Assert.assertEquals(1, buf1.size());
+        Assert.assertEquals(200, buf1.getInt(0));
     }
 
     //2-2.複数バッファに対して均一でないときのトリム
@@ -115,20 +112,18 @@ public class PrometLoggerTest {
         ProposedmethodBuffer buf1 = logger.prepareBuffer(int.class, 1);
         ProposedmethodBuffer buf2 = logger.prepareBuffer(int.class, 2);
 
-        Assert.assertEquals(2, buf0.size());
-        Assert.assertEquals(2, buf1.size());
+        Assert.assertEquals(1, buf0.size());
+        Assert.assertEquals(1, buf1.size());
         Assert.assertEquals(1, buf2.size());
 
-        Assert.assertEquals(20, buf0.getInt(0));
-        Assert.assertEquals(30, buf0.getInt(1));
+        Assert.assertEquals(30, buf0.getInt(0));
 
-        Assert.assertEquals(100, buf1.getInt(0));
-        Assert.assertEquals(200, buf1.getInt(1));
+        Assert.assertEquals(200, buf1.getInt(0));
 
         Assert.assertEquals(1000, buf2.getInt(0));
 
         int totalSize = buf0.size() + buf1.size() + buf2.size();
-        Assert.assertEquals(5, totalSize);
+        Assert.assertEquals(3, totalSize);
     }
 
     //2-3.複数バッファに対してlistCapacity超過のイベント追加
