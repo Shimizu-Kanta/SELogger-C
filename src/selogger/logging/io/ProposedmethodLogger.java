@@ -149,6 +149,11 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 	private ArrayList<Integer> sharedEventCounts = new ArrayList<>();
 
 	/**
+	 * dataIdごとの累積イベント件数（全型）
+	 */
+	private ArrayList<Long> sharedEventFreqCounts = new ArrayList<>();
+
+	/**
 	 * dataIdごとの値型
 	 */
 	private ArrayList<Class<?>> dataIdTypes = new ArrayList<>();
@@ -230,6 +235,8 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 		sharedEvents = new ArrayList<>();
 		sharedEventCounts = null;
 		sharedEventCounts = new ArrayList<>();
+		sharedEventFreqCounts = null;
+		sharedEventFreqCounts = new ArrayList<>();
 		dataIdTypes = null;
 		dataIdTypes = new ArrayList<>();
 	}
@@ -558,6 +565,9 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 		while (sharedEventCounts.size() <= dataId) {
 			sharedEventCounts.add(0);
 		}
+		while (sharedEventFreqCounts.size() <= dataId) {
+			sharedEventFreqCounts.add(0L);
+		}
 		while (dataIdTypes.size() <= dataId) {
 			dataIdTypes.add(null);
 		}
@@ -584,6 +594,9 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			if (event.dataId == dataId) {
 				appendToBuffer(snapshot, event.valueType, event.value, event.seq, event.threadId);
 			}
+		}
+		if (dataId < sharedEventFreqCounts.size()) {
+			snapshot.setFreqCount(sharedEventFreqCounts.get(dataId));
 		}
 		return snapshot;
 	}
@@ -643,6 +656,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			int threadId = ThreadId.get();
 			sharedEvents.add(new SharedEventRecord(dataId, value, valueType, seq, threadId));
 			sharedEventCounts.set(dataId, sharedEventCounts.get(dataId) + 1);
+			sharedEventFreqCounts.set(dataId, sharedEventFreqCounts.get(dataId) + 1L);
 			event_count += 1;
 			put_data_count += 1;
 			if (event_count > list_capacity) {
@@ -656,6 +670,8 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			sharedEvents = new ArrayList<>();
 			sharedEventCounts = null;
 			sharedEventCounts = new ArrayList<>();
+			sharedEventFreqCounts = null;
+			sharedEventFreqCounts = new ArrayList<>();
 			dataIdTypes = null;
 			dataIdTypes = new ArrayList<>();
 			logger.log("OutOfMemoryError: Logger discarded internal buffers to continue the current execution.");

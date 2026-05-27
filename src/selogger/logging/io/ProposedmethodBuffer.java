@@ -21,6 +21,7 @@ public class ProposedmethodBuffer {
 	private int bufferSize;
 	private int nextPos = 0;
 	private long count = 0;
+	private long freqCount = 0;
 	private Object array;
 	private long[] seqnums;
 	private int[] threads;
@@ -47,6 +48,7 @@ public class ProposedmethodBuffer {
 	 */
 	private int getNextIndex() {
 		count++;
+		freqCount++;
 		int next = nextPos++;
 		if (nextPos >= capacity) {
 			if (capacity < bufferSize) {
@@ -219,7 +221,7 @@ public class ProposedmethodBuffer {
 	public synchronized String toString() {
 		StringBuilder buf = new StringBuilder();
 		int len = (int)Math.min(count, bufferSize);
-		buf.append(count());
+		buf.append(freqCount());
 		buf.append(",");
 		buf.append(size());
 		for (int i=0; i<bufferSize; i++) {
@@ -325,6 +327,20 @@ public class ProposedmethodBuffer {
 	 */
 	public synchronized long count() {
 		return count;
+	}
+
+	/**
+	 * @return このバッファに発生したイベントの総数を返す。
+	 */
+	public synchronized long freqCount() {
+		return freqCount;
+	}
+
+	/**
+	 * @param freqCount このバッファに発生したイベントの総数を設定する。
+	 */
+	public synchronized void setFreqCount(long freqCount) {
+		this.freqCount = freqCount;
 	}
 
 	/**
@@ -453,7 +469,7 @@ public class ProposedmethodBuffer {
 	 */
 	public synchronized void writeJson(JsonBuffer buf, boolean skipValues) { 
 		int len = (int)Math.min(count, bufferSize);
-		buf.writeNumberField("freq", count());
+		buf.writeNumberField("freq", freqCount());
 		buf.writeNumberField("record", size());
 
 		if (!skipValues) {
