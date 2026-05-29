@@ -337,13 +337,6 @@ public class ProposedmethodBuffer {
 	}
 
 	/**
-	 * @param freqCount このバッファに発生したイベントの総数を設定する。
-	 */
-	public synchronized void setFreqCount(long freqCount) {
-		this.freqCount = freqCount;
-	}
-
-	/**
 	 * 削除するための実装
 	 * @param trimCount
 	 */
