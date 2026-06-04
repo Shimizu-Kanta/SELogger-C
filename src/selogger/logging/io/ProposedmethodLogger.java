@@ -596,7 +596,7 @@ public class ProposedmethodLogger extends AbstractEventLogger implements IEventL
 			}
 		}
 		if (dataId < sharedEventFreqCounts.size()) {
-			snapshot.setFreqCount(sharedEventFreqCounts.get(dataId));
+			snapshot.setFreqCount(sharedEventFreqCounts.get(dataId).longValue());
 		}
 		return snapshot;
 	}
